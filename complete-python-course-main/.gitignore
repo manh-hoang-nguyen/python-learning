@@ -1,0 +1,12 @@
+venv
+*.ipynb_checkpoints
+__pycache__
+build
+data
+dist
+*.spec
+*.idea
+.vscode
+*.db
+*.log
+*.zip
