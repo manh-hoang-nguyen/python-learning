@@ -20,7 +20,8 @@ class Calculator(ctk.CTk):
         self.title("")
         self.geometry(f"{APP_SIZE[0]}x{APP_SIZE[1]}")
         self.resizable(False, False)
-        self.iconbitmap(f"{os.path.dirname(os.path.realpath(__file__))}/empty.ico")
+        self.iconbitmap(
+            f"{os.path.dirname(os.path.realpath(__file__))}/empty.ico")
         self.title_bar_color()
 
         # layout
@@ -30,26 +31,49 @@ class Calculator(ctk.CTk):
         # data
         self.result_string = ctk.StringVar(value="0")
         self.formula_string = ctk.StringVar(value="")
-
+        self.result_number= ctk.DoubleVar()
         # widget
 
         self.create_widgets()
 
     def operator(self, operator):
         if operator == "clear":
-            print("clear")
             self.result_string.set("0")
             self.formula_string.set("")
         elif operator == "percent":
-            print("percent")
+            self.result_string.set(float(self.result_string.get())/100)
         elif operator == "invert":
-            print("invert")
+            if ("-" in self.result_string.get()) | (self.result_string.get() == "0"):
+                return
+            self.result_string.set("-"+self.result_string.get())
         else:
             raise ValueError()
 
-    def update_result(self, character):
-        print(character)
-        self.result_string.set(self.result_string.get() + character)
+    def math(self, math_operator):
+
+        if math_operator == "/":
+            pass
+        elif math_operator == "*":
+            pass
+        elif math_operator == "-":
+            pass
+        elif math_operator == "+":
+            pass
+        elif math_operator == "=":
+            pass
+        else:
+            raise ValueError()
+
+    def update_result(self, value):
+        if value == '.':
+            if value in self.result_string.get():
+                return
+        if self.result_string.get() == '0':
+            self.result_string.set(str(value))
+        else:
+            self.result_string.set(self.result_string.get()+str(value))
+
+        print(value)
 
     def create_widgets(self):
         # fonts
@@ -100,16 +124,14 @@ class Calculator(ctk.CTk):
         )
         # button number
         for key, value in NUM_POSITIONS.items():
-            print(key)
-            button = ctk.CTkButton(
-                self,
+            button = self.create_button(
                 text=key,
                 font=main_font,
                 text_color=BLACK,
                 fg_color=COLORS.get("light-gray").get("fg"),
                 hover_color=COLORS.get("light-gray").get("hover"),
                 corner_radius=0,
-                command=lambda: self.update_result(key),
+                func=self.update_result,
             )
             button.grid(
                 row=value.get("row"),
@@ -121,27 +143,35 @@ class Calculator(ctk.CTk):
             )
         # math button
         for key, value in MATH_POSITIONS.items():
-            button = ctk.CTkButton(
+            button = MathButton(
                 self,
                 text=key,
                 font=main_font,
                 text_color=WHITE,
                 fg_color=COLORS.get("orange").get("fg"),
                 hover_color=COLORS.get("orange").get("hover"),
-                corner_radius=0,
-                command=self.update_formula,
-            )
-            button.grid(
+                func=self.math,
                 row=value.get("row"),
-                column=value.get("col"),
+                col=value.get("col"),
                 columnspan=value.get("span"),
-                sticky="nsew",
-                padx=STYLING["gap"],
-                pady=STYLING["gap"],
             )
 
     def update_formula(self):
         pass
+
+    def create_button(self, text, font, text_color, fg_color, hover_color, corner_radius, func):
+        button = ctk.CTkButton(
+            self,
+            text=text,
+            font=font,
+            text_color=text_color,
+            fg_color=fg_color,
+            hover_color=hover_color,
+            corner_radius=corner_radius,
+            command=lambda: func(text),
+
+        )
+        return button
 
     def title_bar_color(self):
         try:
@@ -177,7 +207,7 @@ class Button(ctk.CTkButton):
             hover_color=hover_color,
             text_color=text_color,
             text=text,
-            corner_radius=0,
+            corner_radius=0
         )
         self.grid(
             row=row,
@@ -205,6 +235,30 @@ class ImageButton(ctk.CTkButton):
         self.grid(
             row=row,
             column=col,
+            sticky="nsew",
+            padx=STYLING["gap"],
+            pady=STYLING["gap"],
+        )
+
+
+class MathButton(ctk.CTkButton):
+    def __init__(
+        self, parent, text, row, col, font, func, fg_color, hover_color, text_color, columnspan
+    ):
+        super().__init__(
+            parent,
+            font=font,
+            command=lambda: func(text),
+            fg_color=fg_color,
+            hover_color=hover_color,
+            text_color=text_color,
+            text=text,
+            corner_radius=0
+        )
+        self.grid(
+            row=row,
+            column=col,
+            columnspan=columnspan,
             sticky="nsew",
             padx=STYLING["gap"],
             pady=STYLING["gap"],
