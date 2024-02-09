@@ -12,18 +12,35 @@ class App(ctk.CTk):
         ctk.set_appearance_mode("light")
         super().__init__()
         self.title("Paint")
-        self.iconbitmap(f"{os.path.dirname(os.path.realpath(__file__))}/empty.ico")
+        self.iconbitmap(
+            f"{os.path.dirname(os.path.realpath(__file__))}/empty.ico")
         self.geometry("800x600")
-
+        self.color_string_var = ctk.StringVar(value="black")
+        self.color_string_var.trace_add("write", self.color_change)
         # widget
-        DrawSurface(self, circle_radius=1, color_string="black")
+        self.draw_surface = DrawSurface(
+            self, circle_radius=10, color_string=self.color_string_var.get())
         ToolPanel(self)
+
+    def color_change(self, event, *args):
+        print("color change")
+
+    def draw(self):
+        print("draw")
+
+    def erase(self):
+        self.color_string_var.set("white")
+        self.draw_surface.set_corlor('white')
+
+    def clear(self):
+        print("clear")
 
 
 class ToolPanel(ctk.CTkToplevel):
     def __init__(self, parent):
         super().__init__(parent, width=200, height=300)
-        self.iconbitmap(f"{os.path.dirname(os.path.realpath(__file__))}/empty.ico")
+        self.iconbitmap(
+            f"{os.path.dirname(os.path.realpath(__file__))}/empty.ico")
         self.attributes("-topmost", True)
         self.rowconfigure(0, weight=2, uniform="a")
         self.rowconfigure(1, weight=3, uniform="a")
@@ -32,28 +49,14 @@ class ToolPanel(ctk.CTkToplevel):
         self.columnconfigure(0, weight=1, uniform="b")
         # data
         self.action_type_string = ctk.StringVar()
-        self.color_string_var = ctk.StringVar(value="black")
-        self.color_string_var.trace_add("write", self.color_change)
 
         # widget
         ActionType(
             self,
-            draw_func=self.draw,
-            erase_func=self.erase,
-            clear_func=self.clear,
+            draw_func=parent.draw,
+            erase_func=parent.erase,
+            clear_func=parent.clear,
         )
-
-    def color_change(self, event,*args):
-        print("color change")
-
-    def draw(self):
-        print("draw")
-
-    def erase(self):
-        self.color_string_var.set("white")
-
-    def clear(self):
-        print("clear")
 
 
 class ActionType(ctk.CTkFrame):
@@ -85,29 +88,39 @@ class Button(ctk.CTkButton):
 
 class DrawSurface(Canvas):
     def __init__(self, parent, circle_radius, color_string):
-        super().__init__(parent, background=CANVS_BG)
+        super().__init__(parent, background=CANVS_BG, highlightthickness=0)
         self.circle_radius = circle_radius
         self.color_string = color_string
+        self.pre_point = None
         self.place(relx=0, rely=0, relheight=1, relwidth=1)
         self.bind("<Motion>", self.motion)
 
     def motion(self, event):
         center_x, center_y = event.x, event.y
+        if self.pre_point is not None:
+            print("create line")
+            self.create_line(
+                self.pre_point.x,
+                self.pre_point.y,
+                event.x,
+                event.y,
+                fill=self.color_string,
+                width=self.circle_radius,
+                capstyle='round'
+            )
+        else:
+            
+            self.create_oval(
+                center_x - self.circle_radius,
+                center_y - self.circle_radius,
+                center_x + self.circle_radius,
+                center_y + self.circle_radius,
+                fill=self.color_string,
+            )
+        self.pre_point = event
 
-        self.create_oval(
-            center_x - self.circle_radius,
-            center_y - self.circle_radius,
-            center_x + self.circle_radius,
-            center_y + self.circle_radius,
-            fill=self.color_string,
-        )
-
-    def clear(self):
-        print("clear")
-        self.delete("all")
-
-    def erase(self):
-        print("erase")
+    def set_corlor(self, color_string):
+        self.color_string = color_string
 
 
 if __name__ == "__main__":
